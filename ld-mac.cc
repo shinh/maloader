@@ -480,20 +480,7 @@ class MachOLoader {
         continue;
       }
 
-      static const char executable_str[] = "@executable_path";
-      static const size_t executable_str_len = strlen(executable_str);
-      if (!strncmp(dylib.c_str(), executable_str, executable_str_len)) {
-        string dir = g_darwin_executable_path;
-        size_t found = dir.rfind('/');
-        if (found == string::npos) {
-          dir = ".";
-        } else {
-          dir = dir.substr(0, found);
-        }
-        dylib.replace(0, executable_str_len, dir);
-      }
-
-      auto_ptr<MachO> dylib_mach(loadDylib(dylib.c_str()));
+      auto_ptr<MachO> dylib_mach(loadDylib(dylib));
       load(*dylib_mach);
     }
   }
