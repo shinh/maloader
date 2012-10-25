@@ -108,8 +108,10 @@ not OK
 
 * License
 
-Simplified BSD License.
+Simplified BSD License or GPLv3.
 
 Note that all files in "include" directory and some files in "libmac"
 were copied from Apple's Libc-594.9.1.
 http://www.opensource.apple.com/release/mac-os-x-1064/
+
+See http://www.gnu.org/licenses/gpl-3.0.txt for GPLv3.
