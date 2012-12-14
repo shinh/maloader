@@ -116,10 +116,10 @@ class MachOImpl : public MachO {
   virtual void close();
 
  private:
-  class RebaseState;
-  friend class MachOImpl::RebaseState;
-  class BindState;
-  friend class MachOImpl::BindState;
+  struct RebaseState;
+  friend struct MachOImpl::RebaseState;
+  struct BindState;
+  friend struct MachOImpl::BindState;
 
   template <class segment_command, class section>
   void readSegment(char* cmds_ptr,

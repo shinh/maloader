@@ -731,6 +731,8 @@ class MachOLoader {
   }
 
  private:
+  // Because .loop64 cannot be redefined.
+  __attribute__((noinline))
   void boot(uint64_t entry, int argc, char** argv, char** envp);
 
   void pushTrampolineCode(unsigned int c) {
