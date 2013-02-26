@@ -1309,6 +1309,14 @@ int __darwin_compat_mode(const char* function, const char* mode) {
   return !strcasecmp(mode, "unix2003");
 }
 
+int32_t OSAtomicAdd32(int32_t theAmount, volatile int32_t *theValue) {
+  return __sync_fetch_and_add(theValue, theAmount);
+}
+
+int32_t OSAtomicAdd64(int64_t theAmount, volatile int64_t *theValue) {
+  return __sync_fetch_and_add(theValue, theAmount);
+}
+
 __attribute__((constructor)) void initMac() {
   __darwin_stdin = __init_darwin_FILE(stdin);
   __darwin_stdout = __init_darwin_FILE(stdout);
