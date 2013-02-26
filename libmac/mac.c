@@ -1324,3 +1324,33 @@ __attribute__((constructor)) void initMac() {
   mach_init_routine = &do_nothing;
   _cthread_init_routine = &do_nothing;
 }
+
+#define __DARWIN_PTHREAD_MUTEX_SIG_init              0x32AAABA7
+#define __DARWIN_PTHREAD_ERRORCHECK_MUTEX_SIG_init   0x32AAABA1
+#define __DARWIN_PTHREAD_RECURSIVE_MUTEX_SIG_init    0x32AAABA2
+#define __DARWIN_PTHREAD_FIRSTFIT_MUTEX_SIG_init     0x32AAABA3
+
+#define __DARWIN_PTHREAD_MUTEX_SIZE     56
+struct __darwin_pthread_mutex_t {
+  long sig;
+  char opaque[__DARWIN_PTHREAD_MUTEX_SIZE];
+};
+
+int __darwin_pthread_mutex_lock(struct __darwin_pthread_mutex_t *mutex) {
+  // convert pthread_mutex_t initialized by Mac's PTHREAD_MUTEX_INITIALIZER to
+  // that of Linux.
+  if (mutex->sig ==__DARWIN_PTHREAD_MUTEX_SIG_init) {
+    pthread_mutex_t expected_value = PTHREAD_MUTEX_INITIALIZER;
+    memcpy(mutex, &expected_value, sizeof(expected_value));
+  } else if (mutex->sig ==__DARWIN_PTHREAD_ERRORCHECK_MUTEX_SIG_init) {
+    pthread_mutex_t expected_value = PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP;
+    memcpy(mutex, &expected_value, sizeof(expected_value));
+  } else if (mutex->sig ==__DARWIN_PTHREAD_RECURSIVE_MUTEX_SIG_init) {
+    pthread_mutex_t expected_value = PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP;
+    memcpy(mutex, &expected_value, sizeof(expected_value));
+  } else if (mutex->sig ==__DARWIN_PTHREAD_FIRSTFIT_MUTEX_SIG_init) {
+    pthread_mutex_t expected_value = PTHREAD_ADAPTIVE_MUTEX_INITIALIZER_NP;
+    memcpy(mutex, &expected_value, sizeof(expected_value));
+  }
+  return pthread_mutex_lock((pthread_mutex_t*)mutex);
+}

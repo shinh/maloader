@@ -134,6 +134,9 @@ WRAP(pthread_mutexattr_settype)
 WRAP(pthread_mutexattr_setpshared)
 WRAP(pthread_rwlockattr_setpshared)
 
+// Do we need workaround for other initializer macro?
+WRAP(pthread_mutex_lock)
+
 WRAP(dlopen)
 WRAP(dlclose)
 WRAP(dlerror)
