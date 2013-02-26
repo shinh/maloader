@@ -1354,3 +1354,13 @@ int __darwin_pthread_mutex_lock(struct __darwin_pthread_mutex_t *mutex) {
   }
   return pthread_mutex_lock((pthread_mutex_t*)mutex);
 }
+
+// Fake implementation of Block.
+// TODO(yyanagisawa): confirm this is enough for not.
+void * _NSConcreteStackBlock[32] = { 0 };
+void *_Block_copy(const void *arg) {
+  // ugly but seems to work.
+  return (void*)(arg);
+}
+void _Block_release(const void *arg) {
+}
