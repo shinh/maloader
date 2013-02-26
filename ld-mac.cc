@@ -42,6 +42,7 @@
 #include <sys/mman.h>
 #include <time.h>
 #include <ucontext.h>
+#include <unistd.h>
 
 #include <algorithm>
 #include <iostream>
