@@ -287,6 +287,11 @@ class MachOLoader {
     symbol_to_so_.insert(make_pair("uuid_unparse_lower", "libuuid.so"));
     symbol_to_so_.insert(make_pair("uuid_unparse_upper", "libuuid.so"));
 
+    symbol_to_so_.insert(make_pair("MD5", "libcrypto.so"));
+    symbol_to_so_.insert(make_pair("MD5_Final", "libcrypto.so"));
+    symbol_to_so_.insert(make_pair("MD5_Init", "libcrypto.so"));
+    symbol_to_so_.insert(make_pair("MD5_Update", "libcrypto.so"));
+
     if (FLAGS_TRACE_FUNCTIONS) {
       // Push all arguments into stack.
 
