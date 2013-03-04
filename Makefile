@@ -2,11 +2,10 @@ VERSION=0.4
 BITS=64
 
 GCC_EXTRA_FLAGS=-m$(BITS)
-ifeq ($(USE_LIBCXX), 1)
-GCCFLAGS=-g -Iinclude -Wall -MMD -fno-omit-frame-pointer -O $(GCC_EXTRA_FLAGS) -stdlib=libc++ -DUSE_LIBCXX
-LIBCXX_LD_EXTRA_FLAGS=-lc++ -lsupc++
-else
 GCCFLAGS=-g -Iinclude -Wall -MMD -fno-omit-frame-pointer -O $(GCC_EXTRA_FLAGS)
+ifeq ($(USE_LIBCXX), 1)
+GCCFLAGS+=-stdlib=libc++ -DUSE_LIBCXX
+LIBCXX_LD_EXTRA_FLAGS=-lc++ -lsupc++
 endif
 CXXFLAGS=$(GCCFLAGS) -W -Werror
 CFLAGS=$(GCCFLAGS) -fPIC
