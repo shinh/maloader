@@ -49,8 +49,13 @@
 #include <map>
 #include <set>
 #include <string>
-#include <tr1/unordered_map>
 #include <vector>
+
+#ifdef USE_LIBCXX
+#include <unordered_map>
+#else
+#include <tr1/unordered_map>
+#endif
 
 #include "env_flags.h"
 #include "fat.h"
@@ -58,7 +63,9 @@
 #include "mach-o.h"
 
 using namespace std;
+#ifndef USE_LIBCXX
 using namespace std::tr1;
+#endif
 
 DEFINE_bool(TRACE_FUNCTIONS, false, "Show calling functions");
 DEFINE_bool(PRINT_TIME, false, "Print time spent in this loader");
