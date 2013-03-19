@@ -79,6 +79,9 @@ RENAME(stat$INODE64, __darwin_stat64)
 RENAME(fstat$INODE64, __darwin_fstat64)
 RENAME(lstat$INODE64, __darwin_lstat64)
 
+RENAME(statfs$INODE64, __darwin_statfs64)
+RENAME(fstatfs$INODE64, __darwin_fstatfs64)
+
 WRAP(open)
 
 WRAP(mmap)

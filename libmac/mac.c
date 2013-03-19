@@ -43,6 +43,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
+#include <sys/vfs.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -261,6 +262,67 @@ struct __darwin_dirent* __darwin_readdir(DIR* dirp) {
   strcpy(mac.d_name, linux_buf->d_name);
   LOGF("readdir: %s\n", mac.d_name);
   return &mac;
+}
+
+// From /usr/include/sys/mount.h
+#define __DARWIN_MFSNAMELEN 15
+#define __DARWIN_MFSTYPENAMELEN 16
+// assume __DARWIN_64_BIT_INO_T is false.
+#define __DARWIN_MNAMELEN 90
+struct __darwin_fsid { int32_t val[2]; };
+
+struct __darwin_statfs64 {
+  uint32_t f_bsize;
+  int32_t  f_iosize;
+  uint64_t f_blocks;
+  uint64_t f_bfree;
+  uint64_t f_bavail;
+  uint64_t f_files;
+  uint64_t f_ffree;
+  struct __darwin_fsid   f_fsid;
+  __darwin_uid_t    f_owner;
+  uint32_t f_type;
+  uint32_t f_flags;
+  uint32_t f_fssubtype;
+  char     f_fstypename[__DARWIN_MFSTYPENAMELEN];
+  char     f_mntonname[__DARWIN_MAXPATHLEN];
+  char     f_mntfromname[__DARWIN_MAXPATHLEN];
+  uint32_t f_reserved[8];
+};
+
+static void __translate_statfs64(struct statfs64* linux_buf,
+                                 struct __darwin_statfs64* mac) {
+  memset(mac, 0, sizeof(*mac));
+  mac->f_iosize = linux_buf->f_bsize;
+  mac->f_blocks = linux_buf->f_blocks;
+  mac->f_bfree = linux_buf->f_bfree;
+  mac->f_bavail = linux_buf->f_bavail;
+  mac->f_files = linux_buf->f_files;
+  mac->f_ffree = linux_buf->f_ffree;
+  mac->f_type = linux_buf->f_type;
+
+  memcpy(&mac->f_fsid, &linux_buf->f_fsid, sizeof(mac->f_fsid));
+  // Followings are just ignored:
+  // f_bsize, f_owner, f_flags, f_fssubtype, f_fstypename, f_mntonname,
+  // f_mntfromname.
+}
+
+int __darwin_statfs64(const char* path, struct __darwin_statfs64* mac) {
+  LOGF("statfs64: path=%s buf=%p\n", path, mac);
+  struct statfs64 linux_buf;
+  int ret = statfs64(path, &linux_buf);
+  if (ret == 0)
+    __translate_statfs64(&linux_buf, mac);
+  return ret;
+}
+
+int __darwin_fstatfs64(int fd, struct __darwin_statfs64* mac) {
+  LOGF("fstatfs64: fd=%d buf=%p\n", fd, mac);
+  struct statfs64 linux_buf;
+  int ret = fstatfs64(fd, &linux_buf);
+  if (ret == 0)
+    __translate_statfs64(&linux_buf, mac);
+  return ret;
 }
 
 int __maskrune(__darwin_ct_rune_t _c, unsigned long _f) {
@@ -1355,7 +1417,7 @@ int __darwin_pthread_mutex_lock(struct __darwin_pthread_mutex_t *mutex) {
   return pthread_mutex_lock((pthread_mutex_t*)mutex);
 }
 
-// Fake implementation of Block.
+// Dummy implementation of Block.
 // TODO(yyanagisawa): confirm this is enough for not.
 void * _NSConcreteStackBlock[32] = { 0 };
 void *_Block_copy(const void *arg) {
