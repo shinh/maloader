@@ -1079,8 +1079,14 @@ size_t strlcpy(char* dst, const char* src, size_t size) {
   size_t src_size = strlen(src) + 1;  // +1 for '\0'
   LOGF("strlcpy: len(src)=%zu\n", src_size);
   if (size != 0) {
-    // As far as I investigated, glibc strncpy is unbelievably slow if |size|
-    // is much larger than strlen(|src|) e.g. 16K bytes vs 64 bytes.
+    // We don't use strncpy because strncpy is slow if |size| is
+    // much larger than strlen(|src|) e.g. 16K bytes vs 64 bytes.
+    //
+    // The reason of this is explained by glibc's man:
+    //
+    // If the length of src is less than n, strncpy() writes additional
+    // null bytes to dest to ensure that a total of n bytes are written.
+    //
     // Also, we already know the length of |src|, we can use memcpy.
     if (src_size < size)
       size = src_size;
