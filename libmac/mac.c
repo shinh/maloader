@@ -1075,9 +1075,21 @@ void __darwin___cxa_throw(char** obj) {
 }
 
 size_t strlcpy(char* dst, const char* src, size_t size) {
-  dst[size - 1] = '\0';
-  strncpy(dst, src, size - 1);
-  return strlen(dst);
+  LOGF("strlcpy: dst=%p src=%p size=%zu\n", dst, src, size);
+  size_t src_size = strlen(src) + 1;  // +1 for '\0'
+  LOGF("strlcpy: len(src)=%zu\n", src_size);
+  if (size != 0) {
+    // As far as I investigated, glibc strncpy is unbelievably slow if |size|
+    // is much larger than strlen(|src|) e.g. 16K bytes vs 64 bytes.
+    // Also, we already know the length of |src|, we can use memcpy.
+    if (src_size < size)
+      size = src_size;
+    dst[size - 1] = '\0';
+    memcpy(dst, src, size - 1);
+  }
+  // According to the strlcpy(3) manual, the length of |src| is always returned.
+  // https://developer.apple.com/library/mac/#documentation/darwin/reference/manpages/man3/strlcpy.3.html
+  return src_size - 1;
 }
 
 size_t strlcat(char* dst, const char* src, size_t size) {
