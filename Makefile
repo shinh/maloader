@@ -6,6 +6,8 @@ GCCFLAGS+=-g -Iinclude -Wall -MMD -fno-omit-frame-pointer -O $(GCC_EXTRA_FLAGS)
 ifeq ($(USE_LIBCXX), 1)
 GCCFLAGS+=-stdlib=libc++ -DUSE_LIBCXX
 CXX_LDFLAGS+=-lc++ -lsupc++
+CC=clang
+CXX=clang++
 endif
 CXXFLAGS=$(GCCFLAGS) -W -Werror
 CFLAGS=$(GCCFLAGS) -fPIC
