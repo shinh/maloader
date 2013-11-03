@@ -42,7 +42,25 @@ set -e
 dmg=$1
 dir=`basename $dmg .dmg`
 
-if echo $dmg | grep xcode_4.1; then
+HFS=5.hfs
+if echo $dmg | grep xcode_5.0; then
+  # Tested with xcode_5.0.1_command_line_tools
+  PKGS="MacOSX10_9_SDK CLTools_Executables"
+  XCODE=xcode_5.0
+  PKG_DIR="Command Line Developer Tools/Packages"
+  HFS=3.hfs
+elif echo $dmg | grep xcode_4.4; then
+  # Tested with xcode_4.4.1_command_line_tools
+  PKGS="DevSDK DeveloperToolsCLI clang llvm-gcc4.2"
+  XCODE=xcode_4.4
+  PKG_DIR="Command Line Tools*/Packages"
+  HFS=3.hfs
+elif echo $dmg | grep xcode_4.3; then
+  # Tested with xcode_4.3.3_command_line_tools
+  PKGS="DevSDK DeveloperToolsCLI clang llvm-gcc4.2"
+  XCODE=xcode_4.3
+  PKG_DIR="Command Line Tools*/Packages"
+elif echo $dmg | grep xcode_4.1; then
   PKGS="MacOSX10.6 gcc4.2 llvm-gcc4.2 DeveloperToolsCLI clang"
   XCODE=xcode_4.1
   PKG_DIR="Applications/Install Xcode.app/Contents/Resources/Packages"
@@ -50,6 +68,13 @@ elif echo $dmg | grep xcode_3; then
   PKGS="MacOSX10.6 gcc4.2 gcc4.0 llvm-gcc4.2 DeveloperToolsCLI clang"
   XCODE=xcode_3
   PKG_DIR="*/Packages"
+elif echo $dmg | grep xcode_4.; then
+  # Tested with xcode_4.6.2_command_line_tools
+  # Tested with xcode_4.5.2_command_line_tools
+  PKGS="DevSDK DeveloperToolsCLI"
+  XCODE=xcode_4.6
+  PKG_DIR="Command Line Tools*/Packages"
+  HFS=3.hfs
 else
   PKGS="MacOSX10.6 gcc4.2 llvm-gcc4.2 DeveloperToolsCLI clang"
   XCODE=xcode_4.0
@@ -60,8 +85,8 @@ rm -fr $dir
 mkdir $dir
 cd $dir
 
-7z x ../$dmg
-7z x 5.hfs
+7z x $dmg
+7z x $HFS
 
 if [ $XCODE = "xcode_4.1" ]; then
   7z x -y "Install Xcode/InstallXcode.pkg"
@@ -85,6 +110,11 @@ for pkg in $PKGS; do
     cp -R $pkg/SDKs/*/* root
   else
     cd $pkg || continue
+    if [ $pkg = "CLTools_Executables" ]; then
+      mv Library Library-
+      mv Library-/Developer/CommandLineTools/* .
+      rm -fr Library-
+    fi
     tar -c * | tar -xC ../root
     cd ..
   fi
