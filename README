@@ -9,11 +9,49 @@ You need OpenCFLite (http://sourceforge.net/projects/opencflite/)
 installed if you want to run some programs such as dsymutil.
 opencflite-476.17.2 is recommended.
 
-* How to use compiler tool chains of Xcode
+* How to use compiler toolchains of Xcode
 
-TBD
+Recent Xcode toolchains are built by clang/libc++. This means some C++
+programs do not work with ld-mac linked against libstdc++. To build
+ld-mac with clang/libc++, run
 
-* How to use compiler tool chains of Xcode 3.2.6
+% make clean
+% make USE_LIBCXX=1
+
+You need compiler toolchain binaries on your Linux. unpack_xcode.sh in
+this repository helps you to set up them if you have a dmg package of
+Xcode. This script was checked with Xcode 4.3.3, 4.4.1, 4.5.2, 4.6.2,
+and 5.0.1. It would work even on other Xcode releases, but you may
+need to modify the script by yourself. How things are stored in dmg
+packages heavily depend on the version of Xcode. You can use this like
+
+% ./unpack_xcode.sh ~/Downloads/xcode_5.0.1_command_line_tools*.dmg
+
+This will create xcode_5.0.1_command_line_tools*/root. We will call
+this directory as $ROOT.
+
+% ./ld-mac $ROOT/usr/bin/clang --sysroot=$ROOT -c mach/hello.c
+% file hello.o
+hello.o: Mach-O 64-bit x86_64 object
+
+To link binaries on Linux, you also need necessary dylibs in
+root/usr/lib. For example, simple hello world program requires
+/usr/lib/libSystem.dylib and /usr/lib/system. Do something like
+
+(mac)% tar -cvzf sys.tgz /usr/lib/libSystem* /usr/lib/system
+(mac)% scp sys.tgz $USER@linux:/tmp
+(linux)% cd $ROOT && tar -xvzf /tmp/sys.tgz
+
+Also note that it seems ld does not like the version number of
+Xcode. So you need to move xcode_5.0.1_command_line_tools*/root to
+somewhere else. For example:
+
+% ln -sf xcode_5.0.1_command_line_tools_10.9_20131022/root
+% ./ld-mac $ROOT/usr/bin/clang --sysroot=$ROOT -g mach/hello.c
+% ./ld-mac ./a.out
+Hello, 64bit world!
+
+* How to use compiler toolchains of Xcode 3.2.6
 
 Get xcode_3.2.6_and_ios_sdk_4.3__final.dmg (or another xcode package).
 
@@ -104,7 +142,6 @@ not OK
 
 - read dwarf for better backtracing
 - make llvm-gcc work
-- make clang/ld in xcode5 work
 - improve 32bit support
 - handle dwarf and C++ exception
 
