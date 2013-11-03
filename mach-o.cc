@@ -180,6 +180,11 @@ void MachOImpl::readSegment(char* cmds_ptr,
        segment->maxprot, segment->initprot,
        segment->nsects, segment->flags);
 
+  if (!strcmp(segment->segname, "__TEXT")) {
+    CHECK(text_base_ == 0);
+    text_base_ = segment->vmaddr;
+  }
+
   section* sections = reinterpret_cast<section*>(
     cmds_ptr + sizeof(segment_command));
   for (uint32_t j = 0; j < segment->nsects; j++) {
@@ -523,6 +528,8 @@ MachOImpl::MachOImpl(const char* filename, int fd, size_t offset, size_t len,
   CHECK(fd);
   fd_ = fd;
   offset_ = offset;
+  text_base_ = 0;
+  is_lc_main_entry_ = false;
 
   if (!mapped_size_) {
     mapped_size_ = lseek(fd_, 0, SEEK_END);
@@ -752,6 +759,14 @@ MachOImpl::MachOImpl(const char* filename, int fd, size_t offset, size_t len,
         entry_ = reinterpret_cast<uint32_t*>(cmds_ptr)[14];
       }
       LOGF("entry=%llx\n", (ull)entry_);
+      break;
+    }
+
+    case LC_MAIN: {
+      entry_ =
+        reinterpret_cast<struct entry_point_command*>(cmds_ptr)->entryoff;
+      is_lc_main_entry_ = true;
+      LOGF("MAIN entry=%llx\n", (ull)entry_);
       break;
     }
 

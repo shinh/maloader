@@ -98,6 +98,10 @@ class MachO {
 
   uint64_t entry() const { return entry_; }
 
+  uint64_t text_base() const { return text_base_; }
+
+  bool is_lc_main_entry() const { return is_lc_main_entry_; }
+
   const vector<uint64_t>& init_funcs() const { return init_funcs_; }
 
   uint64_t dyld_data() const { return dyld_data_; }
@@ -124,6 +128,8 @@ class MachO {
   int ptrsize_;
   int fd_;
   size_t offset_;
+  uint64_t text_base_;
+  bool is_lc_main_entry_;
 };
 
 #endif  // MACH_O_H_

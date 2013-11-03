@@ -734,7 +734,13 @@ class MachOLoader {
     LOG << "booting from " << (void*)mach.entry() << "..." << endl;
     fflush(stdout);
     CHECK(argc > 0);
-    boot(mach.entry(), argc, argv, envp);
+
+    if (mach.is_lc_main_entry()) {
+      uint64_t entry = mach.entry() + mach.text_base();
+      exit(((int (*)(int, char**, char**))entry)(argc, argv, envp));
+    } else {
+      boot(mach.entry(), argc, argv, envp);
+    }
     /*
       int (*fp)(int, char**, char**) =
       (int(*)(int, char**, char**))mach.entry();
