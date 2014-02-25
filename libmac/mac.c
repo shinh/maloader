@@ -433,7 +433,7 @@ int mach_port_deallocate() {
   return 0;
 }
 
-/* FIXME implement vm_function corectly.
+/* FIXME implement vm_function correctly.
  * OznOg Obviosly, all this remain completelly wrong because completely void.
  * This functions allow programs to start correctly and usually to run (almost)
  * correctly, but the memory managment remains wrong. I do not really have good ideas
@@ -1436,11 +1436,16 @@ int __darwin_pthread_mutex_lock(struct __darwin_pthread_mutex_t *mutex) {
 }
 
 // Dummy implementation of Block.
-// TODO(yyanagisawa): confirm this is enough for not.
 void * _NSConcreteStackBlock[32] = { 0 };
 void *_Block_copy(const void *arg) {
   // ugly but seems to work.
   return (void*)(arg);
 }
 void _Block_release(const void *arg) {
+}
+
+// Dummy implementation of __cxa_demangle.
+char* __cxa_demangle(const char* mangled_name, char* output_buffer,
+                     size_t* length, int* status) {
+  return NULL;  // Always fails.
 }
