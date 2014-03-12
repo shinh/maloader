@@ -481,8 +481,8 @@ class MachOLoader {
       if (!so.empty()) {
         LOG << "Loading " << so << " for " << dylib << endl;
         if (!dlopen(so.c_str(), RTLD_LAZY | RTLD_GLOBAL)) {
-          fprintf(stderr, "Couldn't load %s for %s\n",
-                  so.c_str(), dylib.c_str());
+          fprintf(stderr, "Couldn't load %s for %s: %s\n",
+                  so.c_str(), dylib.c_str(), dlerror());
         }
       }
 
@@ -588,8 +588,8 @@ class MachOLoader {
                 if (dlopen(iter->second.c_str(), RTLD_LAZY | RTLD_GLOBAL)) {
                   sym = (char*)dlsym(RTLD_DEFAULT, name.c_str());
                 } else {
-                  fprintf(stderr, "Couldn't load %s for %s\n",
-                          iter->second.c_str(), name.c_str());
+                  fprintf(stderr, "Couldn't load %s for %s: %s\n",
+                          iter->second.c_str(), name.c_str(), dlerror());
                 }
               }
             }
