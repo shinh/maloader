@@ -745,6 +745,19 @@ __darwin_FILE* __darwin_tmpfile() {
   return __init_darwin_FILE(tmpfile());
 }
 
+static __thread char* g_fgetln_buf;
+char* __darwin_fgetln(__darwin_FILE* fp, size_t* len) {
+  free(g_fgetln_buf);
+  g_fgetln_buf = malloc(4096);
+  fgets(g_fgetln_buf, 4096, fp->linux_fp);
+  *len = strlen(g_fgetln_buf);
+  if (*len >= 4095) {
+    fprintf(stderr, "Insufficient buffer size in fgetln\n");
+    abort();
+  }
+  return g_fgetln_buf;
+}
+
 char __darwin_executable_path[PATH_MAX];
 char __loader_path[PATH_MAX];
 
