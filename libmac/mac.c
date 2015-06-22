@@ -1183,6 +1183,31 @@ void* __darwin_signal() {
   return NULL;
 }
 
+#define __DARWIN_SIG_BLOCK 1
+#define __DARWIN_SIG_UNBLOCK 2
+#define __DARWIN_SIG_SETMASK 3
+static int __translate_sigprocmask_how(int how) {
+  switch (how) {
+  case __DARWIN_SIG_BLOCK:
+    return SIG_BLOCK;
+  case __DARWIN_SIG_UNBLOCK:
+    return SIG_UNBLOCK;
+  case __DARWIN_SIG_SETMASK:
+    return SIG_SETMASK;
+  default:
+    fprintf(stderr, "Unknown sigprocmask how: %d\n", how);
+    return how;
+  }
+}
+
+int __darwin_sigprocmask(int how, const sigset_t *set, sigset_t *oldset) {
+  return sigprocmask(__translate_sigprocmask_how(how), set, oldset);
+}
+
+int __darwin_pthread_sigmask(int how, const sigset_t *set, sigset_t *oldset) {
+  return pthread_sigmask(__translate_sigprocmask_how(how), set, oldset);
+}
+
 typedef struct malloc_statistics_t {
   unsigned blocks_in_use;
   size_t size_in_use;

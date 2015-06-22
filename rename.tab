@@ -117,6 +117,8 @@ RENAME(atexit, __cxa_atexit)
 WRAP(signal)
 WRAP(sigaction)
 WRAP(sigaltstack)
+WRAP(sigprocmask)
+WRAP(pthread_sigmask)
 
 #ifdef __x86_64__
 RENAME(__ashldi3, __ashlti3)
