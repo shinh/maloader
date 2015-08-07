@@ -301,6 +301,17 @@ class MachOLoader {
     symbol_to_so_.insert(make_pair("MD5_Init", "libcrypto.so"));
     symbol_to_so_.insert(make_pair("MD5_Update", "libcrypto.so"));
 
+    symbol_to_so_.insert(make_pair("compress", "libz.so"));
+    symbol_to_so_.insert(make_pair("compressBound", "libz.so"));
+    symbol_to_so_.insert(make_pair("deflate", "libz.so"));
+    symbol_to_so_.insert(make_pair("deflateEnd", "libz.so"));
+    symbol_to_so_.insert(make_pair("deflateInit_", "libz.so"));
+    symbol_to_so_.insert(make_pair("inflate", "libz.so"));
+    symbol_to_so_.insert(make_pair("inflateEnd", "libz.so"));
+    symbol_to_so_.insert(make_pair("inflateInit_", "libz.so"));
+    symbol_to_so_.insert(make_pair("inflateReset", "libz.so"));
+    symbol_to_so_.insert(make_pair("zError", "libz.so"));
+
     if (FLAGS_TRACE_FUNCTIONS) {
       // Push all arguments into stack.
 
