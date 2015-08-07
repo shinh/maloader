@@ -658,6 +658,16 @@ int __darwin_fseek(__darwin_FILE* fp, long offset, int whence) {
   return fseek(fp->linux_fp, offset, whence);
 }
 
+int __darwin_fseeko(__darwin_FILE* fp, uint64_t offset, int whence) {
+  LOGF("fseeko: %p %lld %d\n", fp, offset, whence);
+  return fseeko(fp->linux_fp, offset, whence);
+}
+
+int __darwin_fseeko64(__darwin_FILE* fp, uint64_t offset, int whence) {
+  LOGF("fseeko64: %p %lld %d\n", fp, offset, whence);
+  return fseeko64(fp->linux_fp, offset, whence);
+}
+
 long __darwin_ftell(__darwin_FILE* fp) {
   return ftell(fp->linux_fp);
 }
@@ -730,6 +740,11 @@ void __darwin_setbuf(__darwin_FILE* fp, char* buf) {
 
 void __darwin_setbuffer(__darwin_FILE* fp, char* buf, size_t size) {
   setbuffer(fp->linux_fp, buf, size);
+}
+
+int __darwin_feof(__darwin_FILE* fp) {
+  LOGF("feof: %d\n", feof(fp->linux_fp));
+  return feof(fp->linux_fp);
 }
 
 int __darwin_ferror(__darwin_FILE* fp) {
