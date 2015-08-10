@@ -31,6 +31,7 @@
 
 #include <dirent.h>
 #include <err.h>
+#include <inttypes.h>
 #include <locale.h>
 #include <pthread.h>
 #include <signal.h>
@@ -659,12 +660,12 @@ int __darwin_fseek(__darwin_FILE* fp, long offset, int whence) {
 }
 
 int __darwin_fseeko(__darwin_FILE* fp, uint64_t offset, int whence) {
-  LOGF("fseeko: %p %lld %d\n", fp, offset, whence);
+  LOGF("fseeko: %p %" PRIu64 " %d\n", fp, offset, whence);
   return fseeko(fp->linux_fp, offset, whence);
 }
 
 int __darwin_fseeko64(__darwin_FILE* fp, uint64_t offset, int whence) {
-  LOGF("fseeko64: %p %lld %d\n", fp, offset, whence);
+  LOGF("fseeko64: %p %" PRIu64 " %d\n", fp, offset, whence);
   return fseeko64(fp->linux_fp, offset, whence);
 }
 
@@ -764,7 +765,9 @@ static __thread char* g_fgetln_buf;
 char* __darwin_fgetln(__darwin_FILE* fp, size_t* len) {
   free(g_fgetln_buf);
   g_fgetln_buf = malloc(4096);
-  fgets(g_fgetln_buf, 4096, fp->linux_fp);
+  if (fgets(g_fgetln_buf, 4096, fp->linux_fp) == NULL) {
+    return NULL;
+  }
   *len = strlen(g_fgetln_buf);
   if (*len >= 4095) {
     fprintf(stderr, "Insufficient buffer size in fgetln\n");
