@@ -165,3 +165,5 @@ WRAP(qsort_r)
 WRAP(newlocale)
 
 WRAP(compat_mode)
+
+WRAP(gethostuuid)
