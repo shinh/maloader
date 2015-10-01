@@ -70,8 +70,6 @@ typedef int __darwin_ct_rune_t;     /* ct_rune_t */
 #include "runetable.c"
 #include "stack_protector-obsd.c"
 
-#define UNUSED_PARAMETER(x) (void)(x)
-
 struct __darwin_timespec {
   time_t tv_sec;
   long tv_nsec;
@@ -1387,10 +1385,7 @@ void __darwin_qsort_r(void* base, size_t nel, size_t width, void* thunk,
 }
 
 // uuid_t is unsigned char[16] both on Linux and Mac.
-int __darwin_gethostuuid(uuid_t id, const struct timespec *wait)
-{
-  UNUSED_PARAMETER(wait);
-
+int __darwin_gethostuuid(uuid_t id, const struct timespec *wait) {
   // TODO(mayah): Returns the same uuid for now.
   // It might be better if we can generate uuid per host
   // from mac adderss or something?
