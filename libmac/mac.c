@@ -164,6 +164,12 @@ static void __translate_stat(struct stat64* linux_buf,
   mac->st_ctimespec.tv_sec = linux_buf->st_ctime;
 }
 
+static const char kSysname[] = "Darwin";
+static const char kRelease[] = "15.6.0";
+static const char kVersion[] = "Darwin Kernel Version 15.6.0: "
+    "Mon Aug 29 20:21:34 PDT 2016; root:xnu-3248.60.11~1/RELEASE_X86_64";
+static const char kMachine[] = "x86_64";
+
 int __darwin_stat64(const char* path, struct __darwin_stat64* mac) {
   LOGF("stat64: path=%s buf=%p\n", path, mac);
   struct stat64 linux_buf;
@@ -542,8 +548,8 @@ int __darwin_sysctl(int* name, u_int namelen,
     case CTL_KERN: {
       switch (name[1]) {
         case KERN_OSRELEASE:
-          strcpy((char*)oldp, "10.6.0");
-          *oldlenp = 7;
+          strcpy((char*)oldp, kRelease);
+          *oldlenp = sizeof(kRelease);
           break;
 
         default:
@@ -1021,12 +1027,13 @@ typedef struct {
   const char *description;
 } NXArchInfo;
 
-// This was dumped on snow leopard.
+// This was dumped on El Capitan
 NXArchInfo __darwin_all_arch_infos[] = {
   // The first entry indicates the local arch.
   { "hppa", 11, 0, 2, "HP-PA" },
   { "i386", 7, 3, 1, "Intel 80x86" },
   { "x86_64", 16777223, 3, 1, "Intel x86-64" },
+  { "x86_64h", 16777223, 8, 1, "Intel x86-64h Haswell" },
   { "i860", 15, 0, 2, "Intel 860" },
   { "m68k", 6, 1, 2, "Motorola 68K" },
   { "m88k", 13, 0, 2, "Motorola 88K" },
@@ -1034,6 +1041,7 @@ NXArchInfo __darwin_all_arch_infos[] = {
   { "ppc64", 16777234, 0, 2, "PowerPC 64-bit" },
   { "sparc", 14, 0, 2, "SPARC" },
   { "arm", 12, 0, 1, "ARM" },
+  { "arm64", 16777228, 0, 1, "ARM64" },
   { "any", -1, -1, 0, "Architecture Independent" },
   { "veo", 255, 2, 2, "veo" },
   { "hppa7100LC", 11, 1, 2, "HP-PA 7100LC" },
@@ -1048,6 +1056,7 @@ NXArchInfo __darwin_all_arch_infos[] = {
   { "pentIIm3", 7, 54, 1, "Intel Pentium II Model 3" },
   { "pentIIm5", 7, 86, 1, "Intel Pentium II Model 5" },
   { "pentium4", 7, 10, 1, "Intel Pentium 4" },
+  { "x86_64h", 7, 8, 1, "Intel x86-64h Haswell" },
   { "ppc601", 18, 1, 2, "PowerPC 601" },
   { "ppc603", 18, 3, 2, "PowerPC 603" },
   { "ppc603e", 18, 4, 2, "PowerPC 603e" },
@@ -1063,7 +1072,15 @@ NXArchInfo __darwin_all_arch_infos[] = {
   { "armv5", 12, 7, 1, "arm v5" },
   { "xscale", 12, 8, 1, "arm xscale" },
   { "armv6", 12, 6, 1, "arm v6" },
+  { "armv6m", 12, 14, 1, "arm v6m" },
   { "armv7", 12, 9, 1, "arm v7" },
+  { "armv7f", 12, 10, 1, "arm v7f" },
+  { "armv7s", 12, 11, 1, "arm v7s" },
+  { "armv7k", 12, 12, 1, "arm v7k" },
+  { "armv7m", 12, 15, 1, "arm v7m" },
+  { "armv7em", 12, 16, 1, "arm v7em" },
+  { "armv8", 12, 13, 1, "arm v8" },
+  { "arm64", 16777228, 1, 1, "arm64 v8" },
   { "little", -1, 0, 1, "Little Endian" },
   { "big", -1, 1, 2, "Big Endian" },
   { "veo1", 255, 1, 2, "veo 1" },
@@ -1357,11 +1374,11 @@ int __darwin_uname(__darwin_utsname* buf) {
     return r;
 
   // TODO(hamaji): Emulate Snow leopard
-  strcpy(buf->sysname, "Darwin");
+  strcpy(buf->sysname, kSysname);
   strcpy(buf->nodename, linux_buf.nodename);
-  strcpy(buf->release, "10.6.0");
-  strcpy(buf->version, "Darwin Kernel Version 10.6.0: Wed Nov 10 18:13:17 PST 2010; root:xnu-1504.9.26~3/RELEASE_I386");
-  strcpy(buf->machine, "i386");
+  strcpy(buf->release, kRelease);
+  strcpy(buf->version, kVersion);
+  strcpy(buf->machine, kMachine);
   return 0;
 }
 
