@@ -1,11 +1,12 @@
+# Maloader [![Build Status](https://travis-ci.org/sylvainpelissier/maloader.svg)](https://travis-ci.org/sylvainpelissier/maloader)
 This is a userland Mach-O loader for linux.
 
-# Installation
+## Installation
 
 ```bash
 $ make release
 ```
-# Usage
+## Usage
 
 ```bash
 $ ./ld-mac mac_binary [options...]
@@ -14,7 +15,7 @@ You need OpenCFLite (http://sourceforge.net/projects/opencflite/)
 installed if you want to run some programs such as dsymutil.
 opencflite-476.17.2 is recommended.
 
-# How to use compiler toolchains of Xcode
+## How to use compiler toolchains of Xcode
 
 Recent Xcode toolchains are built by clang/libc++. This means some C++
 programs do not work with ld-mac linked against libstdc++. To build
@@ -62,7 +63,7 @@ $ ./ld-mac $ROOT/usr/bin/clang --sysroot=$ROOT -g mach/hello.c
 $ ./ld-mac ./a.out
 Hello, 64bit world!
 ```
-# How to use compiler toolchains of Xcode 3.2.6
+## How to use compiler toolchains of Xcode 3.2.6
 
 Get xcode_3.2.6_and_ios_sdk_4.3__final.dmg (or another xcode package).
 
@@ -76,7 +77,7 @@ $ ./ld-mac /usr/i686-apple-darwin10/usr/bin/gcc mach/hello.c
 $ ./ld-mac a.out
 ```
 
-# How to run Mach-O binaries using binfmt_misc
+## How to run Mach-O binaries using binfmt_misc
 ```bash
 $ ./binfmt_misc.sh
 $ /usr/i686-apple-darwin10/usr/bin/gcc mach/hello.c
@@ -88,7 +89,7 @@ To remove the entries, run the following command:
 $ ./binfmt_misc.sh stop
 ```
 
-# How to try 32bit support
+## How to try 32bit support
 
 ```bash
 $ make clean
@@ -107,7 +108,7 @@ $ sudo sh -c 'echo 4096 > /proc/sys/vm/mmap_min_addr'
 ```
 Or, running ld-mac as a super user would also work.
 
-# How to run both 64bit Mach-O and 32bit Mach-O binaries
+## How to run both 64bit Mach-O and 32bit Mach-O binaries
 ```bash
 $ make both
 $ ./binfmt_misc.sh start `pwd`/ld-mac.sh
@@ -124,7 +125,7 @@ $ LD_MAC_BITS=32 ./hello
 Hello, 32bit world!
 ```
 
-# Which programs should work
+## Which programs should work
 
 OK
 
@@ -151,20 +152,20 @@ not OK
 - nasm and ndisasm (i386)
 - mpicc, mpicxx, and mpic++
 
-# Notice
+## Notice
 
 - Running all Mac binaries isn't my goal. Only command line tools such
   as compiler tool chain can be executed by this loader.
 - A slide about this: http://shinh.skr.jp/slide/ldmac/000.html
 
-# TODO
+## TODO
 
 - read dwarf for better backtracing
 - make llvm-gcc work
 - improve 32bit support
 - handle dwarf and C++ exception
 
-# License
+## License
 
 Simplified BSD License or GPLv3.
 
