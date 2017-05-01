@@ -681,7 +681,7 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 
-  auto_ptr<MachO> mach(MachO::read(argv[0], "x86-64",
+  unique_ptr<MachO> mach(MachO::read(args[0].c_str(), "x86-64",
                                    false  /* need_exports */));
   if (mach->is64()) {
     emitELF<true>(*mach, args[1].c_str());
