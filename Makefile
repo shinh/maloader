@@ -9,7 +9,7 @@ CXX_LDFLAGS+=-lc++ -lsupc++
 CC=clang
 CXX=clang++
 endif
-CXXFLAGS=$(GCCFLAGS) -W -Werror
+CXXFLAGS=$(GCCFLAGS) -W -Werror --std=c++11
 CFLAGS=$(GCCFLAGS) -fPIC
 
 EXES=libmac.so extract macho2elf ld-mac

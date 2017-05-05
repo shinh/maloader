@@ -509,7 +509,7 @@ class MachOLoader {
         continue;
       }
 
-      auto_ptr<MachO> dylib_mach(loadDylib(dylib));
+      unique_ptr<MachO> dylib_mach(loadDylib(dylib));
       load(*dylib_mach);
     }
   }
@@ -983,7 +983,7 @@ static void* ld_mac_dlopen(const char* filename, int flag) {
   timer.start();
 
   // TODO(hamaji): Handle failures.
-  auto_ptr<MachO> dylib_mach(loadDylib(filename));
+  unique_ptr<MachO> dylib_mach(loadDylib(filename));
 
   MachOLoader* loader = g_loader;
   CHECK(loader);
@@ -1070,7 +1070,7 @@ int main(int argc, char* argv[], char* envp[]) {
   if (!realpath(argv[0], g_darwin_executable_path)) {
   }
 
-  auto_ptr<MachO> mach(MachO::read(argv[0], ARCH_NAME));
+  unique_ptr<MachO> mach(MachO::read(argv[0], ARCH_NAME));
 #ifdef __x86_64__
   if (!mach->is64()) {
     fprintf(stderr, "%s: not 64bit binary\n", argv[0]);
