@@ -1,4 +1,4 @@
-# Maloader [![Build Status](https://travis-ci.org/sylvainpelissier/maloader.svg)](https://travis-ci.org/sylvainpelissier/maloader)
+# Maloader [![Build Status](https://travis-ci.org/shinh/maloader.svg)](https://travis-ci.org/shinh/maloader)
 This is a userland Mach-O loader for linux.
 
 ## Installation
