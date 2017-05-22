@@ -121,6 +121,7 @@ WRAP(signal)
 WRAP(sigaction)
 WRAP(sigaltstack)
 WRAP(sigprocmask)
+WRAP(sigfillset);
 WRAP(pthread_sigmask)
 
 #ifdef __x86_64__
