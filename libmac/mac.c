@@ -1222,11 +1222,13 @@ void* __darwin_signal() {
 
 int __darwin_sigprocmask(
     int how, const __darwin_sigset_t *set, __darwin_sigset_t *oldset) {
+  // TODO: Translate parameters before and after calling sigprocmask.
   return 0;
 }
 
 int __darwin_pthread_sigmask(
     int how, const __darwin_sigset_t *set, __darwin_sigset_t *oldset) {
+  // TODO: Translate parameters before and after calling sigmask.
   return 0;
 }
 
