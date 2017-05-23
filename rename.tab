@@ -90,6 +90,7 @@ WRAP(open)
 
 WRAP(mmap)
 WRAP(sysctl)
+WRAP(fcntl)
 
 RENAME(realpath$DARWIN_EXTSN, realpath)
 
