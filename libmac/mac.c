@@ -1233,7 +1233,7 @@ int __darwin_pthread_sigmask(
 }
 
 int __darwin_sigfillset(__darwin_sigset_t *set) {
-  *set = ~0UL;
+  *(uint32_t*)(set) = ~0U;
   return 0;
 }
 
