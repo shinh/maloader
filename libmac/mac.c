@@ -568,6 +568,32 @@ int __darwin_sysctl(int* name, u_int namelen,
   }
 }
 
+#define __DARWIN_F_GETPATH       50
+
+int __darwin_fcntl(int fildes, int cmd, ...) {
+  LOGF("fcntl\n");
+  int ret = -1;
+  va_list ap;
+  va_start(ap, cmd);
+  if (cmd == __DARWIN_F_GETPATH) {
+    char* buf = va_arg(ap, char *);
+    char proc_path[64];
+    snprintf(proc_path, sizeof(proc_path), "/proc/self/fd/%d", fildes);
+    LOGF("fcntl proc_path=%s\n", proc_path);
+    ssize_t cnt = readlink(proc_path, buf, PATH_MAX);
+    if (cnt > 0) {
+      LOGF("fcntl buf=%s\n", buf);
+      buf[cnt] = '\0';
+      ret = 0;
+    }
+  } else {
+    fprintf(stderr, "fcntl only supports F_GETPATH\n");
+  }
+  va_end(ap);
+  return ret;
+}
+
+
 /* stdio buffers */
 struct __darwin_sbuf {
         unsigned char   *_base;
@@ -1233,7 +1259,7 @@ int __darwin_pthread_sigmask(
 }
 
 int __darwin_sigfillset(__darwin_sigset_t *set) {
-  *set = ~0UL;
+  *(uint32_t*)(set) = ~0U;
   return 0;
 }
 
