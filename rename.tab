@@ -169,3 +169,5 @@ WRAP(newlocale)
 WRAP(compat_mode)
 
 WRAP(gethostuuid)
+
+WRAP(_ZNSt3__15mutex4lockEv)
