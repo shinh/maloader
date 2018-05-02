@@ -1564,13 +1564,7 @@ uint64_t kdebug_trace_string(uint32_t debugid, uint64_t str_id,
   return 0;
 }
 
-void __darwin__ZNSt3__15mutex4lockEv() {
-  struct __darwin_pthread_mutex_t *t;
-  // %rdi should be this pointer.
-  __asm__ __volatile__(
-      "mov %%rdi, %0"
-      : "=r"(t)
-      );
+void __darwin__ZNSt3__15mutex4lockEv(struct __darwin_pthread_mutex_t *t) {
   LOGF("std::mutex::lock: sig=%lx", t->sig);
   __darwin_pthread_mutex_lock(t);
 }
