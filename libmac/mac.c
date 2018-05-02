@@ -1551,3 +1551,20 @@ char* __cxa_demangle(const char* mangled_name, char* output_buffer,
                      size_t* length, int* status) {
   return NULL;  // Always fails.
 }
+
+// Dummy implementation of kdebug_trace.
+int kdebug_trace(uint32_t debugid, uint64_t arg1, uint64_t arg2, uint64_t arg3,
+                 uint64_t arg4) {
+  return 0;
+}
+
+// Dummy implementation of kdebug_trace_string.
+uint64_t kdebug_trace_string(uint32_t debugid, uint64_t str_id,
+                             const char *str) {
+  return 0;
+}
+
+void __darwin__ZNSt3__15mutex4lockEv(struct __darwin_pthread_mutex_t *t) {
+  LOGF("std::mutex::lock: sig=%lx", t->sig);
+  __darwin_pthread_mutex_lock(t);
+}
