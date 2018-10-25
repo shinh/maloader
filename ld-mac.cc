@@ -841,7 +841,7 @@ void MachOLoader::boot(
                    " push %%eax;\n"
                    " jmp *%0;\n"
                    // TODO(hamaji): Fix parameters
-                   ::"r"(entry), "r"(argc), "r"(argv + argc), "g"(envp)
+                   ::"r"((uint32_t)entry), "r"(argc), "r"(argv + argc), "g"(envp)
                    :"%eax", "%edx");
 #endif
 }
