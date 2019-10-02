@@ -11,10 +11,8 @@ RUN make both
 FROM ubuntu:latest
 
 COPY --from=0 /src/libmac.so /usr/local/maloader/
-COPY --from=0 /src/libmac32.so /usr/local/maloader/
 COPY --from=0 /src/extract /usr/local/maloader/
 COPY --from=0 /src/macho2elf /usr/local/maloader/
 COPY --from=0 /src/ld-mac /usr/local/maloader/
-COPY --from=0 /src/ld-mac32 /usr/local/maloader/
 
 ENV PATH="/usr/local/maloader:$PATH"
