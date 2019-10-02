@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y build-essential uuid-dev libz-dev
 COPY . /src
 WORKDIR /src
 
-RUN make both
+RUN make all
 
 
 FROM ubuntu:latest
