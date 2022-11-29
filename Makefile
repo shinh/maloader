@@ -2,14 +2,14 @@ VERSION=0.4
 BITS=64
 
 GCC_EXTRA_FLAGS=-m$(BITS)
-GCCFLAGS+=-g -Iinclude -Wall -MMD -fno-omit-frame-pointer -O $(GCC_EXTRA_FLAGS)
+GCCFLAGS+=-g -Iinclude -Wall -MMD -fno-omit-frame-pointer -O1 $(GCC_EXTRA_FLAGS)
 ifeq ($(USE_LIBCXX), 1)
 GCCFLAGS+=-stdlib=libc++ -DUSE_LIBCXX
 CXX_LDFLAGS+=-lc++ -lsupc++
 CC=clang
 CXX=clang++
 endif
-CXXFLAGS=$(GCCFLAGS) -W -Werror --std=c++11
+CXXFLAGS=$(GCCFLAGS) -Wextra -Werror --std=c++11
 CFLAGS=$(GCCFLAGS) -fPIC
 
 EXES=libmac.so extract macho2elf ld-mac
@@ -30,6 +30,7 @@ MAC_CC=PATH=$(MAC_BIN_DIR) ./ld-mac $(MAC_BIN_DIR)/gcc --sysroot=$(MAC_TOOL_DIR)
 MAC_CXX=PATH=$(MAC_BIN_DIR) ./ld-mac $(MAC_BIN_DIR)/g++ --sysroot=$(MAC_TOOL_DIR)
 MAC_OTOOL=./ld-mac $(MAC_BIN_DIR)/otool
 MAC_TARGETS=ld-mac $(MACBINS) $(MACTXTS)
+DL_LIBS=-ldl
 else
 MAC_CC=$(CC)
 MAC_CXX=$(CXX)
@@ -79,13 +80,13 @@ $(MACTXTS): %.txt: %.bin
 #	touch $@
 
 extract: extract.o fat.o
-	$(CXX) $^ -o $@ -g -I. -W -Wall $(GCC_EXTRA_FLAGS) $(CXX_LDFLAGS)
+	$(CXX) $^ -o $@ -g -I. -Wall $(GCC_EXTRA_FLAGS) $(CXX_LDFLAGS)
 
 macho2elf: macho2elf.o mach-o.o fat.o log.o
 	$(CXX) $^ -o $@ -g $(GCC_EXTRA_FLAGS) $(CXX_LDFLAGS)
 
 ld-mac: ld-mac.o mach-o.o fat.o log.o
-	$(CXX) -v $^ -o $@ -g -ldl -lpthread $(GCC_EXTRA_FLAGS) $(CXX_LDFLAGS)
+	$(CXX) -v $^ -g $(GCC_EXTRA_FLAGS) $(CXX_LDFLAGS) -o $@ $(DL_LIBS) -lpthread $(LIBS)
 
 # TODO(hamaji): autotoolize?
 libmac.so: libmac/mac.o libmac/strmode.c

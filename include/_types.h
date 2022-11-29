@@ -28,13 +28,21 @@
 //#include <sys/_types.h>
 
 #if __GNUC__ > 2 || __GNUC__ == 2 && __GNUC_MINOR__ >= 7
+#ifndef __strfmonlike
 #define __strfmonlike(fmtarg, firstvararg) \
 		__attribute__((__format__ (__strfmon__, fmtarg, firstvararg)))
+#endif
+#ifndef __strftimelike
 #define __strftimelike(fmtarg) \
 		__attribute__((__format__ (__strftime__, fmtarg, 0)))
+#endif
 #else
+#ifndef __strfmonlike
 #define __strfmonlike(fmtarg, firstvararg)
+#endif
+#ifndef __strftimelike
 #define __strftimelike(fmtarg)
+#endif
 #endif
 
 typedef	int		__darwin_nl_item;

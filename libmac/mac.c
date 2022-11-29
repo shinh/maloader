@@ -28,7 +28,11 @@
 // Emulation for functions in Mac.
 
 #define _GNU_SOURCE
+#define _DONT_USE_CTYPE_INLINE_		/* Prevent ctype functions conflict */
 
+#define __mb_cur_max __host_mb_cur_max
+
+#include <sys/param.h>
 #include <dirent.h>
 #include <err.h>
 #include <inttypes.h>
@@ -44,12 +48,22 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
+#ifdef __GLIBC__
 #include <sys/vfs.h>
+#else
+#include <sys/mount.h>
+#endif
 #include <time.h>
 #include <unistd.h>
 
+#ifdef __GLIBC__
+#define HAVE_STAT64
+#define HAVE_STATFS64
+#define HAVE_FSEEKO64
+#endif
+
 #include <mac-ctype.h>
-#include <runetype.h>
+#include <mac-runetype.h>
 #include <uuid/uuid.h>
 
 #ifdef NOLOG
@@ -62,13 +76,15 @@ int LIBMAC_LOG;
 typedef __darwin_rune_t rune_t;
 typedef int __darwin_ct_rune_t;     /* ct_rune_t */
 
-#define _INVALID_RUNE _DefaultRuneLocale.__invalid_rune
+#define _INVALID_RUNE _MacDefaultRuneLocale.__invalid_rune
 
 #include "errno.c"
 #include "none.c"
 #include "popcountdi2.c"
 #include "runetable.c"
 #include "stack_protector-obsd.c"
+
+#undef __mb_cur_max
 
 struct __darwin_timespec {
   time_t tv_sec;
@@ -127,6 +143,12 @@ struct __darwin_stat {
   __int64_t st_qspare[2];
 };
 
+#ifndef HAVE_STAT64
+#define stat64 stat
+#define lstat64 lstat
+#define fstat64 fstat
+#endif
+
 static void __translate_stat64(struct stat64* linux_buf,
                                struct __darwin_stat64* mac) {
   // TODO(hamaji): this memset seems to cause overflow... why?
@@ -146,23 +168,23 @@ static void __translate_stat64(struct stat64* linux_buf,
   mac->st_ctimespec.tv_sec = linux_buf->st_ctime;
 }
 
-static void __translate_stat(struct stat64* linux_buf,
+static void __translate_stat(struct stat* host_buf,
                              struct __darwin_stat* mac) {
   // TODO(hamaji): this memset seems to cause overflow... why?
   //memset(mac, 0, sizeof(*mac));
-  mac->st_dev = linux_buf->st_dev;
-  mac->st_mode = linux_buf->st_mode;
-  mac->st_nlink = linux_buf->st_nlink;
-  mac->st_ino = linux_buf->st_ino;
-  mac->st_uid = linux_buf->st_uid;
-  mac->st_gid = linux_buf->st_gid;
-  mac->st_rdev = linux_buf->st_rdev;
-  mac->st_size = linux_buf->st_size;
-  mac->st_blksize = linux_buf->st_blksize;
-  mac->st_blocks = linux_buf->st_blocks;
-  mac->st_atimespec.tv_sec = linux_buf->st_atime;
-  mac->st_mtimespec.tv_sec = linux_buf->st_mtime;
-  mac->st_ctimespec.tv_sec = linux_buf->st_ctime;
+  mac->st_dev = host_buf->st_dev;
+  mac->st_mode = host_buf->st_mode;
+  mac->st_nlink = host_buf->st_nlink;
+  mac->st_ino = host_buf->st_ino;
+  mac->st_uid = host_buf->st_uid;
+  mac->st_gid = host_buf->st_gid;
+  mac->st_rdev = host_buf->st_rdev;
+  mac->st_size = host_buf->st_size;
+  mac->st_blksize = host_buf->st_blksize;
+  mac->st_blocks = host_buf->st_blocks;
+  mac->st_atimespec.tv_sec = host_buf->st_atime;
+  mac->st_mtimespec.tv_sec = host_buf->st_mtime;
+  mac->st_ctimespec.tv_sec = host_buf->st_ctime;
 }
 
 static const char kSysname[] = "Darwin";
@@ -198,26 +220,26 @@ int __darwin_lstat64(const char* path, struct __darwin_stat64* mac) {
 
 int __darwin_stat(const char* path, struct __darwin_stat* mac) {
   LOGF("stat: path=%s buf=%p\n", path, mac);
-  struct stat64 linux_buf;
-  int ret = stat64(path, &linux_buf);
-  __translate_stat(&linux_buf, mac);
+  struct stat host_buf;
+  int ret = stat(path, &host_buf);
+  __translate_stat(&host_buf, mac);
   return ret;
 }
 
 int __darwin_fstat(int fd, struct __darwin_stat* mac) {
   LOGF("fstat: fd=%d buf=%p\n", fd, mac);
   LOGF("fstat: size_offset=%d\n", (int)((char*)&mac->st_size - (char*)mac));
-  struct stat64 linux_buf;
-  int ret = fstat64(fd, &linux_buf);
-  __translate_stat(&linux_buf, mac);
+  struct stat host_buf;
+  int ret = fstat(fd, &host_buf);
+  __translate_stat(&host_buf, mac);
   return ret;
 }
 
 int __darwin_lstat(const char* path, struct __darwin_stat* mac) {
   LOGF("lstat: path=%s buf=%p\n", path, mac);
-  struct stat64 linux_buf;
-  int ret = lstat64(path, &linux_buf);
-  __translate_stat(&linux_buf, mac);
+  struct stat host_buf;
+  int ret = lstat(path, &host_buf);
+  __translate_stat(&host_buf, mac);
   return ret;
 }
 
@@ -299,6 +321,11 @@ struct __darwin_statfs64 {
   uint32_t f_reserved[8];
 };
 
+#ifndef HAVE_STATFS64
+#define statfs64 statfs
+#define fstatfs64 fstatfs
+#endif
+
 static void __translate_statfs64(struct statfs64* linux_buf,
                                  struct __darwin_statfs64* mac) {
   memset(mac, 0, sizeof(*mac));
@@ -335,7 +362,7 @@ int __darwin_fstatfs64(int fd, struct __darwin_statfs64* mac) {
 }
 
 int __maskrune(__darwin_ct_rune_t _c, unsigned long _f) {
-  return _DefaultRuneLocale.__runetype[_c & 0xff] & _f;
+  return _MacDefaultRuneLocale.__runetype[_c & 0xff] & _f;
 }
 
 int __maskrune_l(__darwin_ct_rune_t _c, unsigned long _f, void* l) {
@@ -468,7 +495,7 @@ int vm_deallocate() {
 void *__darwin_mmap(void *addr, size_t length, int prot, int flags,
                     int fd, off_t offset) {
   LOGF("mmap: addr=%p length=%lu prot=%d flags=%d fd=%d offset=%lu\n",
-       addr, (unsigned long)length, prot, flags, fd, offset);
+       addr, (unsigned long)length, prot, flags, fd, (unsigned long int)offset);
 
   // MAP_ANON is 0x1000 on darwin but 0x20 on linux.
   //
@@ -698,6 +725,10 @@ int __darwin_fseeko(__darwin_FILE* fp, uint64_t offset, int whence) {
   return fseeko(fp->linux_fp, offset, whence);
 }
 
+#ifndef HAVE_FSEEKO64
+#define fseeko64 fseeko
+#endif
+
 int __darwin_fseeko64(__darwin_FILE* fp, uint64_t offset, int whence) {
   LOGF("fseeko64: %p %" PRIu64 " %d\n", fp, offset, whence);
   return fseeko64(fp->linux_fp, offset, whence);
@@ -821,8 +852,8 @@ int _NSGetExecutablePath(char* buf, unsigned int* size) {
 
 int __darwin_open(const char* path, int flags, mode_t mode) {
   LOGF("open path=%s flags=%d\n", path, flags);
-  int linux_flags = 0;
-  linux_flags |= flags & O_ACCMODE;
+  int host_flags = 0;
+  host_flags |= flags & O_ACCMODE;
   // O_SHLOCK
   if (flags & 0x10) {
     fprintf(stderr, "Unsupported open flag=%d\n", flags);
@@ -833,25 +864,27 @@ int __darwin_open(const char* path, int flags, mode_t mode) {
     fprintf(stderr, "Unsupported open flag=%d\n", flags);
     abort();
   }
-  if (flags & 0x40) linux_flags |= O_ASYNC;
-  if (flags & 0x80) linux_flags |= O_SYNC;
-  if (flags & 0x100) linux_flags |= O_NOFOLLOW;
-  if (flags & 0x200) linux_flags |= O_CREAT;
-  if (flags & 0x400) linux_flags |= O_TRUNC;
-  if (flags & 0x800) linux_flags |= O_EXCL;
+  if (flags & 0x40) host_flags |= O_ASYNC;
+  if (flags & 0x80) host_flags |= O_SYNC;
+  if (flags & 0x100) host_flags |= O_NOFOLLOW;
+  if (flags & 0x200) host_flags |= O_CREAT;
+  if (flags & 0x400) host_flags |= O_TRUNC;
+  if (flags & 0x800) host_flags |= O_EXCL;
   // O_EVTONLY
   if (flags & 0x8000) {
     fprintf(stderr, "Unsupported open flag=%d\n", flags);
     abort();
   }
-  if (flags & 0x20000) linux_flags |= O_NOCTTY;
-  if (flags & 0x100000) linux_flags |= O_DIRECTORY;
+  if (flags & 0x20000) host_flags |= O_NOCTTY;
+  if (flags & 0x100000) host_flags |= O_DIRECTORY;
   // O_SYMLINK
   if (flags & 0x200000) {
     fprintf(stderr, "Unsupported open flag=%d\n", flags);
     abort();
   }
-  if (flags & 0x400000) linux_flags |= O_DSYNC;
+#ifdef O_DSYNC
+  if (flags & 0x400000) host_flags |= O_DSYNC;
+#endif
   // O_POPUP
   if (flags & 0x80000000) {
     fprintf(stderr, "Unsupported open flag=%d\n", flags);
@@ -863,7 +896,7 @@ int __darwin_open(const char* path, int flags, mode_t mode) {
     abort();
   }
 
-  return open(path, linux_flags, mode);
+  return open(path, host_flags, mode);
 }
 
 static char** add_loader_to_argv(char* argv[]) {
@@ -1290,6 +1323,9 @@ int task_set_exception_ports() {
 }
 
 char*** _NSGetEnviron() {
+#ifndef __GLIBC__
+  extern char **environ;
+#endif
   return &environ;
 }
 
@@ -1299,13 +1335,25 @@ char*** _NSGetEnviron() {
 int __darwin_pthread_mutexattr_settype(pthread_mutexattr_t* attr, int kind) {
   switch (kind) {
   case __DARWIN_PTHREAD_MUTEX_NORMAL:
+#ifdef __GLIBC__
     kind = PTHREAD_MUTEX_FAST_NP;
+#else
+    kind = PTHREAD_MUTEX_NORMAL;
+#endif
     break;
   case __DARWIN_PTHREAD_MUTEX_ERRORCHECK:
+#ifdef __GLIBC__
     kind = PTHREAD_MUTEX_ERRORCHECK_NP;
+#else
+    kind = PTHREAD_MUTEX_ERRORCHECK;
+#endif
     break;
   case __DARWIN_PTHREAD_MUTEX_RECURSIVE:
+#ifdef __GLIBC__
     kind = PTHREAD_MUTEX_RECURSIVE_NP;
+#else
+    kind = PTHREAD_MUTEX_RECURSIVE;
+#endif
     break;
   default:
     fprintf(stderr, "Unknown pthread_mutexattr_settype kind: %d\n", kind);
@@ -1406,7 +1454,11 @@ typedef struct {
   void* thunk;
 } __darwin_qsort_r_context;
 
+#ifdef __GLIBC__
 int __darwin_qsort_r_helper(const void* a, const void* b, void* data) {
+#else
+int __darwin_qsort_r_helper(void *data, const void* a, const void* b) {
+#endif
   __darwin_qsort_r_context* ctx = (__darwin_qsort_r_context*)data;
   return ctx->compar(ctx->thunk, a, b);
 }
@@ -1417,7 +1469,11 @@ void __darwin_qsort_r(void* base, size_t nel, size_t width, void* thunk,
   __darwin_qsort_r_context ctx;
   ctx.compar = compar;
   ctx.thunk = thunk;
+#ifdef __GLIBC__
   qsort_r(base, nel, width, &__darwin_qsort_r_helper, &ctx);
+#else
+  qsort_r(base, nel, width, &ctx, &__darwin_qsort_r_helper);
+#endif
 }
 
 // uuid_t is unsigned char[16] both on Linux and Mac.
@@ -1517,6 +1573,10 @@ struct __darwin_pthread_mutex_t {
   long sig;
   char opaque[__DARWIN_PTHREAD_MUTEX_SIZE];
 };
+
+#if !defined __GLIBC__ && !defined __linux__ && !defined PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP
+#define PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP PTHREAD_MUTEX_INITIALIZER
+#endif
 
 int __darwin_pthread_mutex_lock(struct __darwin_pthread_mutex_t *mutex) {
   // convert pthread_mutex_t initialized by Mac's PTHREAD_MUTEX_INITIALIZER to

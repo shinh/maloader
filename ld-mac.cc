@@ -27,6 +27,7 @@
 
 // A Mach-O loader for linux.
 
+#include <sys/param.h>
 #include <assert.h>
 #include <dlfcn.h>
 #include <err.h>
@@ -43,6 +44,9 @@
 #include <time.h>
 #include <ucontext.h>
 #include <unistd.h>
+#ifdef BSD
+#include <sys/sysctl.h>
+#endif
 
 #include <algorithm>
 #include <iostream>
@@ -444,7 +448,7 @@ class MachOLoader {
         void* mapped = mmap((void*)(vmaddr + filesize),
                             vmsize - filesize, prot,
                             MAP_PRIVATE | MAP_FIXED | MAP_ANONYMOUS,
-                            0, 0);
+                            -1, 0);
         if (mapped == MAP_FAILED) {
           err(1, "%s mmap(anon) failed", mach.filename().c_str());
         }
@@ -879,6 +883,7 @@ extern "C" {
 /* signal handler for fatal errors */
 static void handleSignal(int signum, siginfo_t* siginfo, void* vuc) {
   ucontext_t *uc = (ucontext_t*)vuc;
+#ifdef __linux__
   void* pc = (void*)uc->uc_mcontext.gregs[
 #ifdef __x86_64__
     REG_RIP
@@ -886,6 +891,13 @@ static void handleSignal(int signum, siginfo_t* siginfo, void* vuc) {
     REG_EIP
 #endif
     ];
+#else
+#ifdef __x86_64__
+  void *pc = (void *)uc->uc_mcontext.mc_rip;
+#else
+  void *pc = (void *)uc->uc_mcontext.mc_eip;
+#endif
+#endif
 
   fprintf(stderr, "%s(%d) %d (@%p) PC: %p\n\n",
           strsignal(signum), signum, siginfo->si_code, siginfo->si_addr, pc);
@@ -949,11 +961,19 @@ static bool loadLibMac(const char* mypath) {
 
 static void initLibMac() {
   char mypath[PATH_MAX + 1];
+#ifdef __linux__
   ssize_t l = readlink("/proc/self/exe", mypath, PATH_MAX);
   if (l < 0) {
     err(1, "readlink for /proc/self/exe");
   }
   mypath[l] = '\0';
+#else
+  size_t len = sizeof mypath;
+  int mib[] = { CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1 };
+  if(sysctl(mib, 4, mypath, &len, NULL, 0) < 0) {
+    err(1, "sysctl for kern.proc.pathname");
+  }
+#endif
 
   if (!loadLibMac(mypath)) {
     fprintf(stderr, "libmac not found\n");

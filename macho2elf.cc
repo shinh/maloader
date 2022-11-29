@@ -43,6 +43,10 @@
 
 #include "mach-o.h"
 
+#ifndef R_X86_64_JUMP_SLOT
+#define R_X86_64_JUMP_SLOT 7
+#endif
+
 using namespace std;
 
 static map<string, string> g_rename;
@@ -323,7 +327,7 @@ class ELFBuilder {
           name = found->second.c_str();
         }
 
-        int sym_index = putELFSym(symtab, bind->vmaddr, 0,
+        uint64_t sym_index = putELFSym(symtab, bind->vmaddr, 0,
                                   ELF64_ST_INFO(STB_GLOBAL, STT_FUNC),
                                   0, 0, name);
 
