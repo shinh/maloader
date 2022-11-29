@@ -36,8 +36,8 @@
  *	@(#)runetype.h	8.1 (Berkeley) 6/2/93
  */
 
-#ifndef	_RUNETYPE_H_
-#define	_RUNETYPE_H_
+#ifndef	_MAC_RUNETYPE_H_
+#define	_MAC_RUNETYPE_H_
 
 #include <_types.h>
 #include <wchar.h>
@@ -45,7 +45,7 @@
 typedef wchar_t __darwin_rune_t;
 typedef size_t __darwin_size_t;
 
-#if !defined(_POSIX_C_SOURCE) || defined(_DARWIN_C_SOURCE)
+#if 0 && (!defined(_POSIX_C_SOURCE) || defined(_DARWIN_C_SOURCE))
 
 #ifndef	_SIZE_T
 #define _SIZE_T
@@ -87,12 +87,12 @@ typedef struct {
 	__darwin_rune_t	__max;		/* Last rune (inclusive) of the range */
 	__darwin_rune_t	__map;		/* What first maps to in maps */
 	uint32_t	*__types;	/* Array of types in range */
-} _RuneEntry;
+} _MacRuneEntry;
 
 typedef struct {
 	int		__nranges;	/* Number of ranges stored */
-	_RuneEntry	*__ranges;	/* Pointer to the ranges */
-} _RuneRange;
+	_MacRuneEntry	*__ranges;	/* Pointer to the ranges */
+} _MacRuneRange;
 
 typedef struct {
 	char		__name[14];	/* CHARCLASS_NAME_MAX = 14 */
@@ -116,9 +116,9 @@ typedef struct {
 	 * Their data is actually contiguous with this structure so as to make
 	 * it easier to read/write from/to disk.
 	 */
-	_RuneRange	__runetype_ext;
-	_RuneRange	__maplower_ext;
-	_RuneRange	__mapupper_ext;
+	_MacRuneRange	__runetype_ext;
+	_MacRuneRange	__maplower_ext;
+	_MacRuneRange	__mapupper_ext;
 
 	void		*__variable;	/* Data which depends on the encoding */
 	int		__variable_len;	/* how long that data is */
@@ -128,13 +128,13 @@ typedef struct {
 	 */
 	int		__ncharclasses;
 	_RuneCharClass	*__charclasses;
-} _RuneLocale;
+} _MacRuneLocale;
 
 #define	_RUNE_MAGIC_A	"RuneMagA"	/* Indicates version A of RuneLocale */
 
 __BEGIN_DECLS
-extern _RuneLocale _DefaultRuneLocale;
-extern _RuneLocale *_CurrentRuneLocale;
+extern _MacRuneLocale _MacDefaultRuneLocale;
+extern _MacRuneLocale *_MacCurrentRuneLocale;
 __END_DECLS
 
-#endif	/* !_RUNETYPE_H_ */
+#endif	/* !_MAC_RUNETYPE_H_ */

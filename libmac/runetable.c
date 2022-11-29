@@ -55,7 +55,7 @@
  * SUCH DAMAGE.
  */
 
-_RuneLocale _DefaultRuneLocale = {
+_MacRuneLocale _MacDefaultRuneLocale = {
     _RUNE_MAGIC_A,
     "none",
     _none_sgetrune,
